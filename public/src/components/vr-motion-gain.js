@@ -1,46 +1,44 @@
 AFRAME.registerComponent('vr-motion-gain', {
   schema: {
-    gain: { type: 'number', default: 20 } // Default gain is 20.
+    gain: { type: 'number', default: 0.1 } // Default gain is 0.1.
   },
 
-  // Initialization function, called when the component is attached to an entity.
   init: function () {
-    // Get the camera entity.
     this.camera = document.querySelector('a-camera');
-    console.log('vr-motion-gain component is initialized.');
-    
-    // Store the last position to keep track of changes in position.
+    this.cameraRig = document.querySelector('#cameraRig');
     this.lastPosition = new THREE.Vector3();
+    console.log('vr-motion-gain component is initialized.');
   },
 
-  // Tick function, called on every frame.
-  tick: function (time, timeDelta) {
+  tick: function () {
     var gain = this.data.gain;
-    // Check if the position has changed (ignoring small floating point errors).
-    if (!this.lastPosition.equals(this.camera.object3D.position)) {
-      // Calculate the position change since the last tick.
-	    var position = this.camera.object3D.position;
-      console.log('Head position b4:', position.x, position.y, position.z);
-      // Apply gain to the camera's position.
-      this.camera.object3D.position.x *= gain;
-      this.camera.object3D.position.y *= gain;
-      //this.camera.object3D.position.z *= gain;
 
-      var position = this.camera.object3D.position;
-      console.log('Head position after:', position.x, position.y, position.z, gain);
+    // Calculate the change in camera position since the last tick.
+    var position = this.camera.getAttribute('position');
+    var dx = position.x - this.lastPosition.x;
+    var dy = position.y - this.lastPosition.y;
+    var dz = position.z - this.lastPosition.z;
 
-      // Log that the gain is being applied.
-      console.log('Applying gain');
-    }
+    // Apply gain to the position change.
+    dx *= gain;
+    dy *= gain;
+    dz *= gain;
 
-    // Update the lastPosition with the new position.
-    this.lastPosition.copy(this.camera.object3D.position);
+    // Update the cameraRig's position by adding the modified position change.
+    var cameraRigPosition = this.cameraRig.getAttribute('position');
+    this.cameraRig.setAttribute('position', {
+      x: cameraRigPosition.x + dx,
+      //y: cameraRigPosition.y + dy,
+      //z: cameraRigPosition.z + dz
+    });
+
+    // Update lastPosition with the new camera position.
+    this.lastPosition.copy(position);
   },
 
-  // Remove function, called when the component is detached from an entity.
   remove: function () {
     // Clean up any event listeners, if necessary.
     this.camera = null;
-    console.log('vr-motion-gain component is removed.');
+    this.cameraRig = null;
   }
 });
