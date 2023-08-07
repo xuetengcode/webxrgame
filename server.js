@@ -8,6 +8,13 @@ const options = {
   cert: fs.readFileSync('cert.crt'),
 };
 
+const mime = require('express').static.mime;
+
+// Set the MIME type for JavaScript files
+mime.define({
+  'application/javascript': ['js']
+});
+
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
 
